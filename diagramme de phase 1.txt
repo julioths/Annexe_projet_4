@@ -1,0 +1,56 @@
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+
+# Paramètres
+beta = 0.3
+sigma = 0.2
+gamma = 0.1
+N = 1000  # constante dans ce modèle
+
+# Méthode d’Euler sans mortalité
+def euler_sier_no_mu(S0, E0, I0, R0, dt=0.5, T=300):
+    S, E, I, R = [S0], [E0], [I0], [R0]
+    n = int(T / dt)
+    for _ in range(n):
+        Sk, Ek, Ik, Rk = S[-1], E[-1], I[-1], R[-1]
+
+        dS = -beta * Sk * Ik / N
+        dE = beta * Sk * Ik / N - sigma * Ek
+        dI = sigma * Ek - gamma * Ik
+        dR = gamma * Ik
+
+        S.append(Sk + dt * dS)
+        E.append(Ek + dt * dE)
+        I.append(Ik + dt * dI)
+        R.append(Rk + dt * dR)
+    return S, E, I, R
+
+# Tracé 3D
+fig = plt.figure(figsize=(12, 8))
+ax = fig.add_subplot(111, projection='3d')
+
+# Conditions initiales variées
+initial_conditions = [
+    (999, 0, 1, 0), (990, 5, 5, 0), (980, 10, 10, 0),
+    (970, 0, 30, 0), (950, 20, 30, 0)
+]
+
+for S0, E0, I0, R0 in initial_conditions:
+    S, E, I, R = euler_sier_no_mu(S0, E0, I0, R0)
+    ax.plot(S, I, R, alpha=0.8)
+
+# Point d’équilibre trivial : fin de l’épidémie
+S_eq = S[-1]
+I_eq = I[-1]
+R_eq = R[-1]
+ax.scatter(S_eq, I_eq, R_eq, color='red', s=100, edgecolors='black', label="Équilibre")
+
+# Axes et titre
+ax.set_xlabel("S (susceptibles)")
+ax.set_ylabel("I (infectés)")
+ax.set_zlabel("R (rétablis)")
+ax.set_title("Diagramme de phase 3D du modèle SIER (sans mortalité)")
+ax.legend()
+plt.tight_layout()
+plt.show()
+
